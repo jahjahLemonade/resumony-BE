@@ -165,7 +165,7 @@ app.post('/sendEmail', (req, res) => {
       "Subject": `Feedback from ${email}`,
       "HtmlBody": "<html><body><strong>Feedback:</strong><br>" + feedback + "</body></html>",
       "TextBody": "Feedback: " + feedback,
-      "MessageStream": "outbound"
+      "MessageStream": "feedback"
     });
     res.send('Email sent');
   } catch (error) {
@@ -175,6 +175,18 @@ app.post('/sendEmail', (req, res) => {
 });
 
 // Run server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+// So this will be grabbing the build directory from a front-end repo and serving it
+
+// app.use(express.static(path.join(__dirname, "build")));
+// app.get("/*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "client/build", "index.html"));
+// });
+
+var server = app.listen(process.env.PORT || 3001, () => {
+  console.log("Listening on port %d", server.address().port);
 });
