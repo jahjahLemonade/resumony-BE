@@ -36,9 +36,9 @@ const fb = initializeApp(config);
 // const analytics = getAnalytics(fb);
 // analytics.isSupported(analytics)
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/client/public/index.html');
-});
+// app.get('/', (req, res) => {
+//   res.sendFile(__dirname + '/client/public/index.html');
+// });
 
 //Config OpenAI
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
@@ -59,7 +59,7 @@ app.post('/create-checkout-session-monthly', async (req, res) => {
       },
     ],
     ui_mode: 'embedded',
-    return_url: "http://localhost:3000/return?session_id={CHECKOUT_SESSION_ID}",
+    return_url: "https://resumony-fe.vercel.app/return?session_id={CHECKOUT_SESSION_ID}",
   })
   res.send({ clientSecret: session.client_secret });
 });
@@ -75,14 +75,14 @@ app.post('/create-checkout-session-front-end', async (req, res) => {
       },
     ],
     ui_mode: 'embedded',
-    return_url: "http://localhost:3000/return?session_id={CHECKOUT_SESSION_ID}",
+    return_url: "https://resumony-fe.vercel.app/return?session_id={CHECKOUT_SESSION_ID}",
   })
   res.send({ clientSecret: session.client_secret });
 });
 
 app.post('/subscription-status', async (req, res) => {
   const { subId } = req.body
-  console.log(">>>", subId)
+  // console.log(">>>", subId)
   const subscription = await stripe.subscriptions.retrieve(
     subId
   );
