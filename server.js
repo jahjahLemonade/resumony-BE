@@ -17,18 +17,10 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // cors middleware
-const setCorsHeaders = (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://resumony-fe.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-}
-
-app.use(cors(setCorsHeaders));
+app.use(cors({ origin: '*' }));
 
 const { initializeApp } = require("firebase/app")
 // const { getAnalytics } = require("firebase/analytics")
-
 // const { collection, deleteDoc, query, where, getDocs } = require("firebase/firestore");
 
 const config = {
