@@ -10,14 +10,21 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // app setup
 const express = require('express');
 const app = express();
-const cors = require('cors');
+// const cors = require('cors');
 
 // middleware
 app.use(express.json());
 app.use(express.static('public'));
 
 // cors middleware
-app.use(cors({ origin: '*' }));
+app.use((req, res, next) => {
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "https://resumony-fe.vercel.app"
+    )
+    next();
+  }
+);
 
 const { initializeApp } = require("firebase/app")
 // const { getAnalytics } = require("firebase/analytics")
