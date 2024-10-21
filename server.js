@@ -15,7 +15,12 @@ const cors = require('cors');
 // middleware
 app.use(express.json());
 app.use(express.static('public'));
-app.use(cors())
+
+// cors middleware
+const corsOptions = {
+  origin: 'https://resumony-fe.vercel.app'
+};
+app.use(cors(corsOptions))
 
 const { initializeApp } = require("firebase/app")
 // const { getAnalytics } = require("firebase/analytics")
