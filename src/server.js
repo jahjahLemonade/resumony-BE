@@ -1,0 +1,36 @@
+import express from 'express'
+import dotenv from 'dotenv'
+import cors from 'cors'
+
+import {errorHandlerMiddleware} from './middleware/errorHandler.js'
+import {authMiddleware} from './middleware/authMiddleware.js'
+import publicRouter from './routes/publicRoutes.js'
+import privateRouter from './routes/privateRoutes.js'
+import stripeRoutes from './routes/stripeRoutes.js'
+import {stripeWebHook} from './controller/stripe.js'
+
+dotenv.config()
+
+const {PORT} = process.env
+const app = express()
+app.use(cors())
+
+app.post('/webhook', express.raw({type: 'application/json'}), stripeWebHook)
+
+app.use(express.json())
+
+app.use(publicRouter)
+
+app.use(authMiddleware)
+
+app.use(stripeRoutes)
+
+app.use(privateRouter)
+
+app.use(errorHandlerMiddleware)
+
+app.listen(PORT, () => {
+  console.log(`App listening on port ${PORT} 🔥`)
+})
+
+console.log('running..')
