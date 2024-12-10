@@ -1,21 +1,28 @@
 import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
 import {createResponsePayload} from '../utils/sendResponse.js'
 import {
+  addRecordsInCollection,
   deleteRecordsInCollection,
   getRecordByIdFromCollection,
   getRecordsFromCollection,
   updateRecordById,
 } from '../utils/firebase.js'
 import {getResumeInJsonFormat} from './openAi.js'
+import {Timestamp} from 'firebase-admin/firestore'
 
 export const createResume = async (req, res, next) => {
   try {
-    const jsonFormatResponse = await getResumeInJsonFormat(
-      req.body,
-      req.user.openAiKey,
-    )
-
-    return res.json(createResponsePayload(jsonFormatResponse))
+    const response = await addRecordsInCollection({
+      collectionName: FIREBASE_COLLECTION.RESUMES,
+      record: {
+        ...req.body,
+        userId: req?.user?.user_id,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        // chatGptResp: jsonFormatResponse,
+      },
+    })
+    return res.json(createResponsePayload(response))
   } catch (error) {
     next(error)
   }

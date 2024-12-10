@@ -14,6 +14,7 @@ import {verifySubscription} from '../controller/stripe.js'
 import {getCurrentUserInfo} from '../controller/profileController.js'
 import {paymentMiddleware} from '../middleware/paymentMiddleware.js'
 import {addOpenAiKey} from '../controller/openAi.js'
+import {sendEmail} from '../controller/sendEmail.js'
 
 const privateRouter = Router()
 
@@ -51,6 +52,6 @@ privateRouter
 
 privateRouter
   .route('/feedback')
-  .post([validatorMiddleWare(VALIDATOR.FEEDBACK)], addFeedBack)
+  .post([validatorMiddleWare(VALIDATOR.FEEDBACK), addFeedBack], sendEmail)
 
 export default privateRouter
