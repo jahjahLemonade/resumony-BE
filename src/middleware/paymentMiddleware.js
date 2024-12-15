@@ -15,11 +15,11 @@ export const paymentMiddleware = async (req, res, next) => {
       paymentInfo?.subscriptionEndDate &&
       !dayjs().isAfter(paymentInfo?.subscriptionEndDate)
     ) {
-      if (paymentInfo?.type === PAYMENT_TYPE.ONE_TIME) {
+      if (paymentInfo?.plan === PAYMENT_TYPE.ONE_TIME) {
         // TODO: need to fetch from the backend
         req.user.openAiKey = 'xyz'
         return next()
-      } else if (paymentInfo?.type === PAYMENT_TYPE.MONTHLY) {
+      } else if (paymentInfo?.plan === PAYMENT_TYPE.MONTHLY) {
         req.user.openAiKey = process.env.OPENAI_API_KEY
         return next()
       }

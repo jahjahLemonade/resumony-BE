@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import admin from 'firebase-admin'
 import {createResponsePayload} from '../utils/sendResponse.js'
 import {
   addOrUpdatePaymentPlan,
@@ -6,6 +7,7 @@ import {
 } from '../utils/firebase.js'
 import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
 import {PAYMENT_TYPE} from '../globalConstants.js'
+import dayjs from 'dayjs'
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -80,9 +82,186 @@ export const checkPaymentStatus = async (req, res, next) => {
   }
 }
 
+// export const getCustomerPaymentInfo = async (req, res, next) => {
+//   try {
+//     // Fetch customer details
+//     const customer = await stripe.customers.retrieve(req.params.customerId)
+
+//     // Fetch subscriptions for this customer
+//     const subscriptions = await stripe.subscriptions.list({
+//       customer: req.params.customerId,
+//       limit: 1, // Get the latest subscription (if the customer has more than one)
+//     })
+
+//     console.log({subscriptions: subscriptions.data[0]})
+
+//     if (subscriptions.data.length > 0) {
+//       const subscription = subscriptions.data[0]
+//       // Subscription start and end dates
+//       const subscriptionStartDate = new Date(subscription.created * 1000) // Convert timestamp to Date
+//       const subscriptionEndDate = new Date(
+//         subscription.current_period_end * 1000,
+//       ) // Convert timestamp to Date
+
+//       return res.json(
+//         createResponsePayload({
+//           subscriptions,
+//           // subscriptionStartDate: subscriptionStartDate,
+//           // subscriptionEndDate: subscriptionEndDate,
+//           // status: subscription.status,
+//           // plan: subscription.items.data[0].price.nickname, // Assuming you're saving plan names with prices
+//         }),
+//       )
+//     }
+//     return res.json(
+//       createResponsePayload({
+//         message: 'subscription not found',
+//       }),
+//     )
+//   } catch (error) {
+//     console.error('Error fetching payment info:', error)
+//     // throw new Error('Failed to retrieve customer payment info.')
+//     next(error)
+//   }
+// }
+
+// export const getCustomerPaymentInfo = async (req, res, next) => {
+//   try {
+//     // Fetch customer details
+//     const customer = await stripe.customers.retrieve(req.params.customerId)
+
+//     // Fetch subscriptions for this customer
+//     const subscriptions = await stripe.subscriptions.list({
+//       customer: req.params.customerId,
+//       limit: 1, // Get the latest subscription (if the customer has more than one)
+//     })
+
+//     // Log the subscription details to check if they exist
+//     console.log({subscriptions: subscriptions.data[0]})
+
+//     if (subscriptions.data.length > 0) {
+//       const subscription = subscriptions.data[0]
+//       // Subscription start and end dates
+//       const subscriptionStartDate = new Date(subscription.created * 1000) // Convert timestamp to Date
+//       const subscriptionEndDate = new Date(
+//         subscription.current_period_end * 1000,
+//       ) // Convert timestamp to Date
+
+//       return res.json(
+//         createResponsePayload({
+//           subscriptions,
+//           subscriptionStartDate,
+//           subscriptionEndDate,
+//           status: subscription.status,
+//           plan: subscription.items.data[0].price.nickname, // Assuming you're saving plan names with prices
+//         }),
+//       )
+//     }
+
+//     // If no subscriptions found, check for one-time payments using PaymentIntents
+//     const paymentIntents = await stripe.paymentIntents.list({
+//       customer: req.params.customerId,
+//       limit: 5, // Limit to the latest 5 payments
+//     })
+
+//     if (paymentIntents.data.length > 0) {
+//       const paymentDetails = paymentIntents.data.map(intent => ({
+//         amount: intent.amount_received / 100, // Amount in your currency, divided by 100 (since it's in cents)
+//         status: intent.status,
+//         created: new Date(intent.created * 1000), // Convert timestamp to Date
+//         paymentMethod: intent.payment_method_types.join(', '), // Payment methods used
+//       }))
+
+//       return res.json(
+//         createResponsePayload({
+//           message: 'One-time payments found.',
+//           paymentDetails,
+//         }),
+//       )
+//     }
+
+//     // If no payments or subscriptions found, send a response indicating so
+//     return res.json(
+//       createResponsePayload({
+//         message: 'No active subscriptions or one-time payments found.',
+//       }),
+//     )
+//   } catch (error) {
+//     console.error('Error fetching payment info:', error)
+//     next(error) // Pass the error to the error-handling middleware
+//   }
+// }
+
+export const getCustomerPaymentInfo = async (req, res, next) => {
+  try {
+    // Fetch customer details
+    const customer = await stripe.customers.retrieve(req.params.customerId)
+
+    // Fetch subscriptions for this customer
+    // const subscriptions = await stripe.subscriptions.list({
+    //   customer: req.params.customerId,
+    //   limit: 1, // Get the latest subscription (if the customer has more than one)
+    // })
+
+    // console.log({subscriptions: subscriptions.data[0]})
+
+    // // Check if the customer has an active subscription
+    // if (subscriptions.data.length > 0) {
+    //   const subscription = subscriptions.data[0]
+    //   // Subscription start and end dates
+    //   const subscriptionStartDate = new Date(subscription.created * 1000) // Convert timestamp to Date
+    //   const subscriptionEndDate = new Date(
+    //     subscription.current_period_end * 1000,
+    //   ) // Convert timestamp to Date
+
+    //   return res.json(
+    //     createResponsePayload({
+    //       subscriptions,
+    //       subscriptionStartDate,
+    //       subscriptionEndDate,
+    //       status: subscription.status,
+    //       plan: subscription.items.data[0].price.nickname, // Assuming you're saving plan names with prices
+    //     }),
+    //   )
+    // }
+
+    // If no active subscriptions found, check for one-time payments using PaymentIntents
+    const paymentIntents = await stripe.paymentIntents.list({
+      customer: req.params.customerId,
+      limit: 5, // Limit to the latest 5 payments
+    })
+
+    // If one-time payments (PaymentIntents) are found
+    if (paymentIntents.data.length > 0) {
+      const paymentDetails = paymentIntents.data.map(intent => ({
+        amount: intent.amount_received / 100, // Amount in your currency, divided by 100 (since it's in cents)
+        status: intent.status,
+        created: new Date(intent.created * 1000), // Convert timestamp to Date
+        paymentMethod: intent.payment_method_types.join(', '), // Payment methods used
+      }))
+
+      return res.json(
+        createResponsePayload({
+          message: 'One-time payments found.',
+          paymentDetails,
+        }),
+      )
+    }
+
+    // If no subscriptions or one-time payments found, send a response indicating so
+    return res.json(
+      createResponsePayload({
+        message: 'No active subscriptions or one-time payments found.',
+      }),
+    )
+  } catch (error) {
+    console.error('Error fetching payment info:', error)
+    next(error) // Pass the error to the error-handling middleware
+  }
+}
+
 export const stripeWebHook = async (req, res) => {
   const sig = req.headers['stripe-signature']
-
   let event
 
   try {
@@ -98,54 +277,90 @@ export const stripeWebHook = async (req, res) => {
       case 'checkout.session.completed': {
         const session = event.data.object
         // Here we will update the user's subscription status
-        const userId = session.client_reference_id
         const customerId = session.customer
         const subscriptionId = session.subscription
+        const paymentIntentId = session.payment_intent
+        const userId = session.client_reference_id
         const subscription = subscriptionId
           ? await stripe.subscriptions.retrieve(subscriptionId)
           : {}
 
+        // Extract payment info and other details
+        const paymentMethod = session.payment_method_types[0] // e.g., "card", "paypal"
+        const amount = session.amount_total / 100 // Convert from cents to dollars
+        const subscriptionStartDate = dayjs.unix(session.created).toISOString() // Convert from timestamp to ISO string
+        const subscriptionEndDate = subscriptionId
+          ? dayjs.unix(subscription.current_period_end).toISOString()
+          : null
+
+        const paymentData = {
+          paymentId: `payment_${session.id}`, // Use session ID for unique payment ID
+          plan: session.mode === 'payment' ? 'ONE_TIME' : 'MONTHLY',
+          amount,
+          subscriptionStartDate,
+          subscriptionEndDate,
+          paymentStatus: 'completed',
+          paymentMethod,
+          paymentIntentId,
+        }
+
         await addOrUpdatePaymentPlan({
-          userId,
+          customerId,
           data: {
-            subscriptionId,
-            subscriptionEndDate: new Date(
-              session.mode === 'payment'
-                ? new Date().setFullYear(new Date().getFullYear() + 1)
-                : subscription.current_period_end * 1000,
-            ).toISOString(),
-            paymentStatus: 'completed',
+            paymentInfo: paymentData,
             stripeCustomerId: customerId,
-            type:
-              session.mode === 'payment'
-                ? PAYMENT_TYPE.ONE_TIME
-                : PAYMENT_TYPE.MONTHLY,
+            userId,
           },
         })
         break
       }
 
+      // FIXME: Fix the failed case data like plan type etc
       case 'invoice.payment_failed': {
         const failedInvoice = event.data.object
+        const failedCustomerId = failedInvoice.customer
+        console.log({failedInvoice})
 
-        const userId = failedInvoice.client_reference_id
-        const failedUserId = failedInvoice.customer
+        // Extract the payment info for failed payment with safe checks
+        const paymentMethod =
+          failedInvoice.payment_method_types &&
+          failedInvoice.payment_method_types.length > 0
+            ? failedInvoice.payment_method_types[0] // e.g., "card", "paypal"
+            : 'unknown' // Default to 'unknown' if payment_method_types is not present or empty
 
-        addOrUpdatePaymentPlan({
-          userId,
+        const amountDue = failedInvoice.amount_due / 100 // Convert from cents to dollars
+        const paymentIntentId = failedInvoice.payment_intent
+        const paymentStatus = failedInvoice.paid ? 'completed' : 'failed'
+        const subscriptionStartDate = dayjs
+          .unix(failedInvoice.created)
+          .toISOString()
+        const subscriptionEndDate = dayjs
+          .unix(failedInvoice.period_end)
+          .toISOString()
+
+        // Create payment data object for the failed invoice
+        const paymentData = {
+          paymentId: `payment_${failedInvoice.id}`, // Use invoice ID for unique payment ID
+          plan: 'monthly',
+          amount: amountDue,
+          subscriptionStartDate,
+          subscriptionEndDate,
+          paymentStatus,
+          paymentMethod,
+          paymentIntentId, // Add Payment Intent ID to track the payment attempt
+        }
+        await addOrUpdatePaymentPlan({
+          customerId: failedCustomerId,
           data: {
-            stripeCustomerId: customerId,
-            paymentStatus: 'failed',
-            type:
-              failedInvoice.mode === 'payment'
-                ? PAYMENT_TYPE.ONE_TIME
-                : PAYMENT_TYPE.MONTHLY,
+            paymentInfo: paymentData,
+            stripeCustomerId: failedCustomerId,
           },
         })
         break
       }
-
       default:
+        // Handle other event types if necessary
+        break
     }
 
     res.status(200).send('Event received')

@@ -1,5 +1,6 @@
 import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
-import {firebaseDb} from '../config/firebase/index.js'
+import {firebase, firebaseDb} from '../config/firebase/index.js'
+import admin from 'firebase-admin'
 
 const convertFirebaseResponse = snapshot => {
   const results = []
@@ -14,6 +15,7 @@ const convertFirebaseResponse = snapshot => {
 export const getRecordsFromCollection = async ({
   collectionName,
   conditions,
+  limit, // Optional limit parameter
 }) => {
   let query = firebaseDb.collection(collectionName)
 
@@ -22,6 +24,10 @@ export const getRecordsFromCollection = async ({
     query = query.where(key, '==', value)
   }
 
+  // Apply limit if it's provided
+  if (limit) {
+    query = query.limit(limit)
+  }
   const snapshots = await query.get()
 
   const results = convertFirebaseResponse(snapshots)
@@ -81,20 +87,47 @@ export const deleteRecordsInCollection = async ({collectionName, recordId}) => {
   return response
 }
 
-export const addOrUpdatePaymentPlan = async ({userId, data}) => {
-  const docRef = firebaseDb.collection(FIREBASE_COLLECTION.PAYMENTS).doc(userId)
+export const addOrUpdatePaymentPlan = async ({customerId, data}) => {
+  console.log({customerId, data})
+  const {paymentInfo, ...otherInfo} = data
+  const docRef = firebaseDb
+    .collection(FIREBASE_COLLECTION.PAYMENTS)
+    .doc(customerId)
 
   // Check if the document exists before updating
   const doc = await docRef.get()
   if (!doc.exists) {
-    await firebaseDb
-      .collection(FIREBASE_COLLECTION.PAYMENTS)
-      .doc(userId)
-      .set(data)
+    // If the document does not exist, create a new one with the payments array
+    await docRef.set({
+      payments: [paymentInfo], // Initialize payments as an array with the first payment
+      createdAt: admin.firestore.Timestamp.now(),
+      updatedAt: admin.firestore.Timestamp.now(),
+      ...otherInfo,
+    })
     return
   }
-
-  // Update the document with the new data
-  await docRef.update(data)
+  // If the document exists, update the payments array using arrayUnion to avoid duplicates
+  await docRef.update({
+    payments: admin.firestore.FieldValue.arrayUnion(paymentInfo),
+    updatedAt: admin.firestore.Timestamp.now(),
+    ...otherInfo,
+  })
   return
 }
+// export const addOrUpdatePaymentPlan = async ({userId, data}) => {
+//   const docRef = firebaseDb.collection(FIREBASE_COLLECTION.PAYMENTS).doc(userId)
+
+//   // Check if the document exists before updating
+//   const doc = await docRef.get()
+//   if (!doc.exists) {
+//     await firebaseDb
+//       .collection(FIREBASE_COLLECTION.PAYMENTS)
+//       .doc(userId)
+//       .set(data)
+//     return
+//   }
+
+//   // Update the document with the new data
+//   await docRef.update(data)
+//   return
+// }

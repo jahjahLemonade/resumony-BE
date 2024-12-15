@@ -3,6 +3,7 @@ import {Router} from 'express'
 import {VALIDATOR} from '../validators/constant.js'
 import {
   checkPaymentStatus,
+  getCustomerPaymentInfo,
   createCustomer,
   createSubscription,
 } from '../controller/stripe.js'
@@ -23,6 +24,10 @@ stripeRouter
   )
 
 stripeRouter.route('/checkPaymentStatus/:sessionId').get([checkPaymentStatus])
+
+stripeRouter
+  .route('/getCustomerPaymentInfo/:customerId')
+  .get([getCustomerPaymentInfo])
 
 // stripeRouter
 //   .route('/verify-subscription')

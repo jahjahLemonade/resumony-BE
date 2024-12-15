@@ -52,6 +52,6 @@ privateRouter
 
 privateRouter
   .route('/feedback')
-  .post([validatorMiddleWare(VALIDATOR.FEEDBACK), addFeedBack], sendEmail)
+  .post([validatorMiddleWare(VALIDATOR.FEEDBACK)], sendEmail)
 
 export default privateRouter
