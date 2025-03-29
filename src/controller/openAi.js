@@ -3,11 +3,11 @@ import {
   getResumeSystemPrompt,
   getResumeUserPrompt,
 } from '../utils/resumePrompts.js'
-import {addRecordsInCollection} from '../utils/firebase.js'
-import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
-import {createResponsePayload} from '../utils/sendResponse.js'
+import { addRecordsInCollection } from '../utils/firebase.js'
+import { FIREBASE_COLLECTION } from '../config/firebase/constants.js'
+import { createResponsePayload } from '../utils/sendResponse.js'
 
-export const getResumeInJsonFormat = async (body, openAiKey) => {
+export const getResumeInJsonFormat = async (body, apiKey) => {
   const {
     careerSummary,
     companyName,
@@ -17,7 +17,7 @@ export const getResumeInJsonFormat = async (body, openAiKey) => {
     skills,
     qualifications,
   } = body
-  const openai = new OpenAI(openAiKey)
+  const openai = new OpenAI({ apiKey })
   const resp = await openai.chat.completions.create({
     messages: [
       {
@@ -46,13 +46,9 @@ export const getResumeInJsonFormat = async (body, openAiKey) => {
 // Function to check if the provided OpenAI API key is valid
 async function validateOpenAIKey(apiKey) {
   try {
-    const openai = new OpenAI(apiKey)
-    const response = await openai.chat.completions.create({
-      messages: [{role: 'user', content: 'Say this is a test'}],
-      model: 'GPT-4o',
-    })
+    const openai = new OpenAI({ apiKey })
 
-    // If the request is successful, the API key is valid
+    await openai.models.list();
     return true
   } catch (error) {
     // If there's an error (e.g., 401 Unauthorized), the API key is invalid
