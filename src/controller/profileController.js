@@ -1,9 +1,8 @@
-import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
+import { FIREBASE_COLLECTION } from '../config/firebase/constants.js'
 import {
   getRecordByIdFromCollection,
-  getRecordsFromCollection,
 } from '../utils/firebase.js'
-import {createResponsePayload} from '../utils/sendResponse.js'
+import { createResponsePayload } from '../utils/sendResponse.js'
 
 export const getCurrentUserInfo = async (req, res, next) => {
   try {
@@ -11,10 +10,9 @@ export const getCurrentUserInfo = async (req, res, next) => {
     //   recordId: req.user.user_id,
     //   collectionName: FIREBASE_COLLECTION.PAYMENTS,
     // })
-    const paymentInfo = await getRecordsFromCollection({
+    const paymentInfo = await getRecordByIdFromCollection({
       collectionName: FIREBASE_COLLECTION.PAYMENTS,
-      conditions: {userId: req?.user?.user_id},
-      limit: 1,
+      recordId: req.user.email
     })
     const apiKey = await getRecordByIdFromCollection({
       recordId: req.user.user_id,
@@ -22,19 +20,15 @@ export const getCurrentUserInfo = async (req, res, next) => {
     })
     return res.json(
       createResponsePayload({
-        user: {...req.user, openAiKeyPresent: Boolean(apiKey?.apiKey)},
-        ...(paymentInfo?.length > 0
-          ? {
-              paymentInfo:
-                paymentInfo[0]?.payments?.[
-                  paymentInfo[0]?.payments?.length - 1
-                ],
-            }
-          : {}),
+        user: { ...req.user, openAiKeyPresent: Boolean(apiKey?.apiKey) },
+        paymentInfo:
+          paymentInfo?.payments?.[
+          paymentInfo?.payments?.length - 1
+          ],
       }),
     )
   } catch (e) {
-    console.log({e})
+    console.log({ e })
     next(e)
   }
 }

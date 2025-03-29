@@ -1,5 +1,5 @@
-import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
-import {createResponsePayload} from '../utils/sendResponse.js'
+import { FIREBASE_COLLECTION } from '../config/firebase/constants.js'
+import { createResponsePayload } from '../utils/sendResponse.js'
 import {
   addRecordsInCollection,
   deleteRecordsInCollection,
@@ -7,8 +7,8 @@ import {
   getRecordsFromCollection,
   updateRecordById,
 } from '../utils/firebase.js'
-import {getResumeInJsonFormat} from './openAi.js'
-import {Timestamp} from 'firebase-admin/firestore'
+import { getResumeInJsonFormat } from './openAi.js'
+import { Timestamp } from 'firebase-admin/firestore'
 
 export const createResume = async (req, res, next) => {
   try {
@@ -44,7 +44,7 @@ export const getResumes = async (req, res, next) => {
   try {
     const records = await getRecordsFromCollection({
       collectionName: FIREBASE_COLLECTION.RESUMES,
-      conditions: {userId: req?.user?.user_id},
+      conditions: { userId: req?.user?.user_id },
     })
     return res.json(createResponsePayload(records))
   } catch (error) {
@@ -54,7 +54,7 @@ export const getResumes = async (req, res, next) => {
 
 export const getResume = async (req, res, next) => {
   try {
-    const {resumeId} = req.params
+    const { resumeId } = req.params
     const records = await getRecordByIdFromCollection({
       collectionName: FIREBASE_COLLECTION.RESUMES,
       recordId: resumeId,
@@ -67,7 +67,7 @@ export const getResume = async (req, res, next) => {
 
 export const updateResume = async (req, res, next) => {
   try {
-    const {resumeId} = req.params
+    const { resumeId } = req.params
     const records = await updateRecordById({
       collectionName: FIREBASE_COLLECTION.RESUMES,
       recordId: resumeId,
@@ -81,7 +81,7 @@ export const updateResume = async (req, res, next) => {
 
 export const deleteResume = async (req, res, next) => {
   try {
-    const {resumeId} = req.params
+    const { resumeId } = req.params
     const records = await deleteRecordsInCollection({
       collectionName: FIREBASE_COLLECTION.RESUMES,
       recordId: resumeId,

@@ -1,12 +1,11 @@
 import Stripe from 'stripe'
-import admin from 'firebase-admin'
-import {createResponsePayload} from '../utils/sendResponse.js'
+import fs from 'fs';
+import { createResponsePayload } from '../utils/sendResponse.js'
 import {
   addOrUpdatePaymentPlan,
   getRecordByIdFromCollection,
 } from '../utils/firebase.js'
-import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
-import {PAYMENT_TYPE} from '../globalConstants.js'
+import { FIREBASE_COLLECTION } from '../config/firebase/constants.js'
 import dayjs from 'dayjs'
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY)
@@ -38,7 +37,7 @@ export const createCustomer = async (req, res, next) => {
 
 export const createSubscription = async (req, res, next) => {
   try {
-    const {customerId, priceId, mode} = req.body
+    const { customerId, priceId, mode } = req.body
 
     // Create a Checkout session for the customer
     const session = await stripe.checkout.sessions.create({
@@ -55,7 +54,7 @@ export const createSubscription = async (req, res, next) => {
       cancel_url: `${process.env.CLIENT_PAYMENT_ERROR_URL}`,
       client_reference_id: req?.user?.user_id,
     })
-    return res.json(createResponsePayload({sessionId: session.id}))
+    return res.json(createResponsePayload({ sessionId: session.id }))
   } catch (error) {
     next(error)
   }
@@ -71,11 +70,11 @@ export const checkPaymentStatus = async (req, res, next) => {
     const paymentStatus = session.payment_status
 
     if (paymentStatus === 'paid') {
-      return res.json(createResponsePayload({paymentStatus: 'paid'}))
+      return res.json(createResponsePayload({ paymentStatus: 'paid' }))
     } else if (paymentStatus === 'unpaid') {
-      return res.json(createResponsePayload({paymentStatus: 'unpaid'}))
+      return res.json(createResponsePayload({ paymentStatus: 'unpaid' }))
     } else {
-      return res.json(createResponsePayload({paymentStatus: 'unknown'}))
+      return res.json(createResponsePayload({ paymentStatus: 'unknown' }))
     }
   } catch (error) {
     next(error)
@@ -278,53 +277,94 @@ export const stripeWebHook = async (req, res) => {
         const session = event.data.object
         // Here we will update the user's subscription status
         const customerId = session.customer
+        const emailId = session.customer_details.email
         const subscriptionId = session.subscription
         const paymentIntentId = session.payment_intent
-        const userId = session.client_reference_id
-        const subscription = subscriptionId
-          ? await stripe.subscriptions.retrieve(subscriptionId)
-          : {}
+        if (!subscriptionId) {
+          const subscription = subscriptionId
+            ? await stripe.subscriptions.retrieve(subscriptionId)
+            : {}
+          // Extract payment info and other details
+          const paymentMethod = session.payment_method_types[0] // e.g., "card", "paypal"
+          const amount = session.amount_total / 100 // Convert from cents to dollars
+          const subscriptionStartDate = dayjs.unix(session.created).toISOString() // Convert from timestamp to ISO string
+          const subscriptionEndDate = subscriptionId
+            ? dayjs.unix(subscription.current_period_end).toISOString()
+            : null
 
-        // Extract payment info and other details
-        const paymentMethod = session.payment_method_types[0] // e.g., "card", "paypal"
-        const amount = session.amount_total / 100 // Convert from cents to dollars
-        const subscriptionStartDate = dayjs.unix(session.created).toISOString() // Convert from timestamp to ISO string
-        const subscriptionEndDate = subscriptionId
-          ? dayjs.unix(subscription.current_period_end).toISOString()
-          : null
+          const paymentData = {
+            paymentId: `payment_${session.id}`, // Use session ID for unique payment ID
+            plan: session.mode === 'payment' ? 'ONE_TIME' : 'MONTHLY',
+            amount,
+            subscriptionStartDate,
+            subscriptionEndDate,
+            paymentStatus: 'completed',
+            paymentMethod,
+            paymentIntentId,
+          }
 
-        const paymentData = {
-          paymentId: `payment_${session.id}`, // Use session ID for unique payment ID
-          plan: session.mode === 'payment' ? 'ONE_TIME' : 'MONTHLY',
-          amount,
-          subscriptionStartDate,
-          subscriptionEndDate,
-          paymentStatus: 'completed',
-          paymentMethod,
-          paymentIntentId,
+          await addOrUpdatePaymentPlan({
+            emailId,
+            data: {
+              paymentInfo: paymentData,
+              stripeCustomerId: customerId,
+              customerId,
+            },
+          })
         }
-
-        await addOrUpdatePaymentPlan({
-          customerId,
-          data: {
-            paymentInfo: paymentData,
-            stripeCustomerId: customerId,
-            userId,
-          },
-        })
         break
       }
+
+      case "invoice.payment_succeeded":
+        {
+
+          // writeJSONToFile("test.json", event)
+          const session = event.data.object
+          // Here we will update the user's subscription status
+          const customerId = session.customer
+          const emailId = session.customer_email
+          const subscriptionId = session.subscription
+          const paymentIntentId = session.payment_intent
+          const subscription = subscriptionId
+            ? await stripe.subscriptions.retrieve(subscriptionId)
+            : {}
+          // Extract payment info and other details
+          const amount = session.total / 100 // Convert from cents to dollars
+          const subscriptionStartDate = dayjs.unix(session.created).toISOString() // Convert from timestamp to ISO string
+          const subscriptionEndDate = subscriptionId
+            ? dayjs.unix(subscription.current_period_end).toISOString()
+            : null
+
+          const paymentData = {
+            paymentId: `payment_${session.id}`, // Use session ID for unique payment ID
+            plan: session.mode === 'payment' ? 'ONE_TIME' : 'MONTHLY',
+            amount,
+            subscriptionStartDate,
+            subscriptionEndDate,
+            paymentStatus: 'completed',
+            paymentIntentId,
+          }
+
+          await addOrUpdatePaymentPlan({
+            emailId,
+            data: {
+              paymentInfo: paymentData,
+              stripeCustomerId: customerId,
+            },
+          })
+          break
+        }
 
       // FIXME: Fix the failed case data like plan type etc
       case 'invoice.payment_failed': {
         const failedInvoice = event.data.object
         const failedCustomerId = failedInvoice.customer
-        console.log({failedInvoice})
+        const emailId = failedInvoice.customer_email
 
         // Extract the payment info for failed payment with safe checks
         const paymentMethod =
           failedInvoice.payment_method_types &&
-          failedInvoice.payment_method_types.length > 0
+            failedInvoice.payment_method_types.length > 0
             ? failedInvoice.payment_method_types[0] // e.g., "card", "paypal"
             : 'unknown' // Default to 'unknown' if payment_method_types is not present or empty
 
@@ -350,7 +390,7 @@ export const stripeWebHook = async (req, res) => {
           paymentIntentId, // Add Payment Intent ID to track the payment attempt
         }
         await addOrUpdatePaymentPlan({
-          customerId: failedCustomerId,
+          emailId,
           data: {
             paymentInfo: paymentData,
             stripeCustomerId: failedCustomerId,
@@ -372,11 +412,11 @@ export const stripeWebHook = async (req, res) => {
 
 export const verifySubscription = async (req, res, next) => {
   try {
-    const {user_id} = req.user
+    const { email } = req.user
 
     const paymentInfo = await getRecordByIdFromCollection(
       FIREBASE_COLLECTION.PAYMENTS,
-      user_id,
+      email,
     ) // Replace with your DB query
 
     // Fetch the customer’s subscriptions from Stripe
@@ -398,10 +438,10 @@ export const verifySubscription = async (req, res, next) => {
     const expirationDate = new Date(subscription.current_period_end * 1000) // Convert from Unix timestamp
 
     if (expirationDate > currentDate && subscription.status === 'active') {
-      return res.json(createResponsePayload({isActiveSubscription: true}))
+      return res.json(createResponsePayload({ isActiveSubscription: true }))
     }
 
-    return res.json(createResponsePayload({isActiveSubscription: false}))
+    return res.json(createResponsePayload({ isActiveSubscription: false }))
   } catch (error) {
     next(error)
   }
