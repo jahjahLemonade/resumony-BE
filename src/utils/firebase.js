@@ -1,12 +1,12 @@
-import {FIREBASE_COLLECTION} from '../config/firebase/constants.js'
-import {firebase, firebaseDb} from '../config/firebase/index.js'
+import { FIREBASE_COLLECTION } from '../config/firebase/constants.js'
+import { firebaseDb } from '../config/firebase/index.js'
 import admin from 'firebase-admin'
 
 const convertFirebaseResponse = snapshot => {
   const results = []
 
   snapshot.forEach(doc => {
-    results.push({id: doc.id, ...doc.data()})
+    results.push({ id: doc.id, ...doc.data() })
   })
 
   return results
@@ -42,7 +42,7 @@ export const getRecordByIdFromCollection = async ({
   if (!doc.exists) {
     return
   }
-  return {id: doc.id, ...doc.data()}
+  return { id: doc.id, ...doc.data() }
 }
 
 export const updateRecordById = async ({
@@ -63,7 +63,7 @@ export const updateRecordById = async ({
 
   // Return the updated document
   const updatedDoc = await docRef.get()
-  return {id: updatedDoc.id, ...updatedDoc.data()}
+  return { id: updatedDoc.id, ...updatedDoc.data() }
 }
 
 export const addRecordsInCollection = async ({
@@ -79,7 +79,7 @@ export const addRecordsInCollection = async ({
   return response
 }
 
-export const deleteRecordsInCollection = async ({collectionName, recordId}) => {
+export const deleteRecordsInCollection = async ({ collectionName, recordId }) => {
   const response = await firebaseDb
     .collection(collectionName)
     .doc(recordId)
@@ -87,12 +87,11 @@ export const deleteRecordsInCollection = async ({collectionName, recordId}) => {
   return response
 }
 
-export const addOrUpdatePaymentPlan = async ({customerId, data}) => {
-  console.log({customerId, data})
-  const {paymentInfo, ...otherInfo} = data
+export const addOrUpdatePaymentPlan = async ({ emailId, data }) => {
+  const { paymentInfo, ...otherInfo } = data
   const docRef = firebaseDb
     .collection(FIREBASE_COLLECTION.PAYMENTS)
-    .doc(customerId)
+    .doc(emailId)
 
   // Check if the document exists before updating
   const doc = await docRef.get()
