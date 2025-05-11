@@ -2,7 +2,8 @@ import {createResponsePayload} from '../utils/sendResponse.js'
 import postmark from 'postmark'
 
 export const sendEmail = (req, res, next) => {
-  try {
+  try { 
+    console.log('sendEmail', req.body)
     const {message} = req.body
     var client = new postmark.ServerClient(process.env.POSTMARK_API_KEY)
 

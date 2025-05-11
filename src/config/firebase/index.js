@@ -13,7 +13,7 @@ const firebaseConfig = {
     messagingSenderId: process.env.FIREBASE_MESSAGE_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.split(String.raw`\n`).join('\n'),
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   }),
 }
