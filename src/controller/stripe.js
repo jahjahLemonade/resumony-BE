@@ -272,6 +272,7 @@ export const stripeWebHook = async (req, res) => {
     )
 
     // Handle the event
+    
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
