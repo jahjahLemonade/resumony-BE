@@ -22,6 +22,8 @@ app.post('/webhook', express.raw({type: 'application/json'}), stripeWebHook)
 
 app.use(express.json())
 
+app.set('trust proxy', 1) // trust first proxy for rate limiting
+
 app.use(publicRouter)
 
 app.use(authMiddleware)
