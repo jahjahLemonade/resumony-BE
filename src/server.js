@@ -22,7 +22,7 @@ app.post('/webhook', express.raw({type: 'application/json'}), stripeWebHook)
 
 app.use(express.json())
 
-app.set('trust proxy', 5) // trust first proxy for rate limiting
+app.set('trust proxy', 3) // trust first proxy for rate limiting
 app.get('/ip', (request, response) => response.send(request.ip))
 app.get('/x-forwarded-for', (request, response) => response.send(request.headers['x-forwarded-for']))
 
