@@ -42,6 +42,8 @@ privateRouter
   .put([validatorMiddleWare(VALIDATOR.EDIT_RESUME)], updateResume)
   .delete(deleteResume)
 
+
+console.log("paymentMiddleware", paymentMiddleware)
 privateRouter
   .route('/resumes/generate')
   .post(
