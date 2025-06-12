@@ -11,9 +11,9 @@ export const paymentMiddleware = async (req, res, next) => {
       recordId: req?.user?.email
     })
 
-    const paymentInfo = paymentInfoRes?.[0]?.payments?.[
-      paymentInfoRes?.[0]?.payments?.length - 1
-    ]
+    const paymentInfo = paymentInfoRes?.payments?.[
+          paymentInfo?.payments?.length - 1
+          ]
     if (paymentInfo?.paymentStatus === 'completed') {
       
       if (paymentInfo?.subscriptionEndDate &&
