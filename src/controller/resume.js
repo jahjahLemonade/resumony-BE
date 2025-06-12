@@ -30,14 +30,13 @@ export const createResume = async (req, res, next) => {
 
 export const generateResume = async (req, res, next) => {
   try {
-    console.log('req.body', req.body)
-    console.log('req.user.openAiKey', req.user.openAiKey)
     const jsonFormatResponse = await getResumeInJsonFormat(
       req.body,
       req.user.openAiKey,
     )
     return res.json(createResponsePayload(jsonFormatResponse))
   } catch (error) {
+    console.log({error})
     next(error)
   }
 }
