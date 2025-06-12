@@ -15,11 +15,13 @@ export const paymentMiddleware = async (req, res, next) => {
       paymentInfoRes?.[0]?.payments?.length - 1
     ]
     if (paymentInfo?.paymentStatus === 'completed') {
-
+      
       if (paymentInfo?.subscriptionEndDate &&
         !dayjs().isAfter(paymentInfo?.subscriptionEndDate)) {
         if (paymentInfo?.plan === PAYMENT_TYPE.MONTHLY) {
+          console.log("monthly subscription activated")
           req.user.openAiKey = process.env.OPENAI_API_KEY
+          console.log("monthly subscription activated" ,req.user) 
           return next()
         }
       }
@@ -33,8 +35,10 @@ export const paymentMiddleware = async (req, res, next) => {
         return next()
       }
     }
+    console.log({paymentInfo})
     return next(createHttpError(401, { message: 'Access denied' }))
   } catch (error) {
+    console.log({error})
     return next(createHttpError(401, { message: 'Access denied' }))
   }
 }
