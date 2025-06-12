@@ -12,7 +12,7 @@ export const paymentMiddleware = async (req, res, next) => {
     })
 
     const paymentInfo = paymentInfoRes?.payments?.[
-          paymentInfo?.payments?.length - 1
+          paymentInfoRes?.payments?.length - 1
           ]
     if (paymentInfo?.paymentStatus === 'completed') {
       
