@@ -28,6 +28,16 @@ export const createCustomer = async (req, res, next) => {
     const newCustomer = await stripe.customers.create({
       email: req.body.email,
     })
+    await stripe.paymentMethods.attach('pm_card_visa', {
+      customer: newCustomer.id,
+    });
+
+    // 3. Set the default payment method
+    await stripe.customers.update(newCustomer.id, {
+      invoice_settings: {
+        default_payment_method: 'pm_card_visa',
+      },
+    });
     return res.json(createResponsePayload(newCustomer))
   } catch (error) {
     console.error('Error in customer creation/fetch:', error.message)
@@ -37,24 +47,17 @@ export const createCustomer = async (req, res, next) => {
 
 export const createSubscription = async (req, res, next) => {
   try {
-    const { customerId, priceId, mode } = req.body
+    const { customerId, priceId } = req.body
 
     // Create a Checkout session for the customer
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+
+
+    const subscription = await stripe.subscriptions.create({
       customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: mode,
-      success_url: `${process.env.CLIENT_PAYMENT_SUCCESS_URL}`,
-      cancel_url: `${process.env.CLIENT_PAYMENT_ERROR_URL}`,
-      client_reference_id: req?.user?.user_id,
-    })
-    return res.json(createResponsePayload({ sessionId: session.id }))
+      expand: ['latest_invoice.payment_intent'],
+      items: [{ price: priceId }],
+     })
+    return res.json(createResponsePayload({ subscription: subscription.id, status: subscription.status }))
   } catch (error) {
     next(error)
   }
