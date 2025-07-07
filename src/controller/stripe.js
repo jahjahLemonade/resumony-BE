@@ -33,11 +33,11 @@ export const createCustomer = async (req, res, next) => {
     });
 
     // 3. Set the default payment method
-    await stripe.customers.update(newCustomer.id, {
-      invoice_settings: {
-        default_payment_method: 'pm_card_visa',
-      },
-    });
+    // await stripe.customers.update(newCustomer.id, {
+    //   invoice_settings: {
+    //     default_payment_method: 'pm_card_visa',
+    //   },
+    // });
     return res.json(createResponsePayload(newCustomer))
   } catch (error) {
     console.error('Error in customer creation/fetch:', error.message)
