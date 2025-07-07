@@ -55,7 +55,7 @@ export const createSubscription = async (req, res, next) => {
       expand: ['latest_invoice.payment_intent'],
       items: [{ price: priceId }],
      })
-    return res.json(createResponsePayload({ subscription: subscription.id, status: subscription.status }))
+    return res.json(createResponsePayload({ status: subscription.status }))
   } catch (error) {
     next(error)
   }
