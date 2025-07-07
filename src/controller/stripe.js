@@ -50,8 +50,6 @@ export const createSubscription = async (req, res, next) => {
     const { customerId, priceId } = req.body
 
     // Create a Checkout session for the customer
-
-
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       expand: ['latest_invoice.payment_intent'],
