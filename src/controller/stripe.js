@@ -48,13 +48,14 @@ export const createCustomer = async (req, res, next) => {
 export const createSubscription = async (req, res, next) => {
   try {
     const { customerId, priceId } = req.body
-
+    console.log("Creating subscription for customer:", customerId, "with price:", priceId)
     // Create a Checkout session for the customer
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       expand: ['latest_invoice.payment_intent'],
       items: [{ price: priceId }],
      })
+     console.log("Subscription created:", subscription)
     return res.json(createResponsePayload({ status: subscription.status }))
   } catch (error) {
     next(error)
