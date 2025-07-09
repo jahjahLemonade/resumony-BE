@@ -7,7 +7,7 @@ import {authMiddleware} from './middleware/authMiddleware.js'
 import publicRouter from './routes/publicRoutes.js'
 import privateRouter from './routes/privateRoutes.js'
 import stripeRoutes from './routes/stripeRoutes.js'
-import {stripeWebHook} from './controller/stripe.js'
+import {testStripeWebHook} from './controller/stripe.js'
 import {rateLimiterUsingThirdParty} from './middleware/rateLimiter.js'
 
 dotenv.config()
@@ -18,7 +18,7 @@ app.use(cors())
 
 app.use(rateLimiterUsingThirdParty)
 
-app.post('/webhook', express.raw({type: 'application/json'}), stripeWebHook)
+app.post('/webhook', express.raw({type: 'application/json'}), testStripeWebHook)
 
 app.use(express.json())
 
