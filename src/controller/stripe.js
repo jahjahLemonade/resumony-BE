@@ -61,7 +61,7 @@ export const createSubscription = async (req, res, next) => {
       items: [{ price: priceId }],
     });
     console.log("Subscription created:", subscription);
-    return res.json(createResponsePayload({ status: subscription.status }));
+    return res.json(createResponsePayload({ id: subscription.id }));
   } catch (error) {
     next(error);
   }
