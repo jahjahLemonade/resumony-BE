@@ -70,8 +70,10 @@ export const createSubscription = async (req, res, next) => {
 export const checkPaymentStatus = async (req, res, next) => {
   try {
     // Retrieve the payment status of subscription.
-    const subscription = await stripe.subscriptions.retrieve(req.params.subscriptionId);
+    const { subscriptionId } = req.body;
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const paymentStatus = subscription.status;
+
 
     // Prod code
     // const session = await stripe.checkout.sessions.retrieve(
