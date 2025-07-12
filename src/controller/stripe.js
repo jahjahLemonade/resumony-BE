@@ -70,11 +70,16 @@ export const createSubscription = async (req, res, next) => {
 export const checkPaymentStatus = async (req, res, next) => {
   try {
     // Retrieve the payment status of subscription.
+    console.log("Checking payment status for subscription:", req.body);
     const { subscriptionId } = req.body;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const paymentStatus = subscription.status;
-
-
+    console.log(
+      "Payment status for subscription:",
+      subscriptionId,
+      "is",
+      paymentStatus
+    );
     // Prod code
     // const session = await stripe.checkout.sessions.retrieve(
     //   req.params.sessionId
@@ -83,7 +88,7 @@ export const checkPaymentStatus = async (req, res, next) => {
     // Check the payment status
     // const paymentStatus = session.payment_status;
 
-    if (paymentStatus === "active") {
+    if (paymentStatus === "paid") {
       return res.json(createResponsePayload({ paymentStatus: "paid" }));
     } else if (paymentStatus === "unpaid") {
       return res.json(createResponsePayload({ paymentStatus: "unpaid" }));
