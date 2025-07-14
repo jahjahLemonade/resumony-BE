@@ -319,7 +319,7 @@ export const testStripeWebHook = async (req, res) => {
             paymentMethod,
             paymentIntentId,
           };
-
+          console.log("dataBase")
           await addOrUpdatePaymentPlan({
             emailId,
             data: {
