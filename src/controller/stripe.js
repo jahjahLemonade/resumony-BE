@@ -295,8 +295,7 @@ export const testStripeWebHook = async (req, res) => {
       case "customer.subscription.created":
         const subscription = event.data.object;
         const customerId = subscription.customer;
-        const emailId =
-          subscription.customer_email || subscription.customer_details.email;
+        const emailId = subscription.customer_email
         const subscriptionId = subscription.id;
         const paymentIntentId = subscription.latest_invoice.payment_intent;
         if (!subscriptionId) {
@@ -332,7 +331,7 @@ export const testStripeWebHook = async (req, res) => {
         }
         break;
 
-      case "invoice.paid": {
+      case "invoice.payment_succeeded": {
         const invoice = event.data.object;
         console.log(`Invoice paid for customer: ${invoice.customer}`);
         const customerId = invoice.customer;
