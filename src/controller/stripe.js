@@ -288,7 +288,7 @@ export const testStripeWebHook = async (req, res) => {
 
   try {
     console.log("Received webhook event")
-    event = stripe.webhooks.constructEvent(req.body.toString(), sig, process.env.STRIPE_WEBHOOK_SECRET_KEY);
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET_KEY);
     console.log(">")
     // Handle different event types
     switch (event.type) {
