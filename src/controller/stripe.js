@@ -89,7 +89,7 @@ export const checkPaymentStatus = async (req, res, next) => {
     // Check the payment status
     // const paymentStatus = session.payment_status;
 
-    if (paymentStatus === "paid") {
+    if (paymentStatus === "active") {
       return res.json(createResponsePayload({ paymentStatus: "paid" }));
     } else if (paymentStatus === "unpaid") {
       return res.json(createResponsePayload({ paymentStatus: "unpaid" }));
