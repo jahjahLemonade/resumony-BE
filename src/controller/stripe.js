@@ -289,7 +289,7 @@ export const testStripeWebHook = async (req, res) => {
   try {
     console.log("Received webhook event")
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET_KEY);
-    console.log(">")
+    console.log("Webhook event constructed successfully:", event.type);
     // Handle different event types
     switch (event.type) {
       case "customer.subscription.created":
@@ -319,7 +319,7 @@ export const testStripeWebHook = async (req, res) => {
             paymentMethod,
             paymentIntentId,
           };
-          console.log("dataBase")
+          console.log(">", "dataBase")
           await addOrUpdatePaymentPlan({
             emailId,
             data: {
@@ -358,7 +358,7 @@ export const testStripeWebHook = async (req, res) => {
             paymentMethod,
             paymentIntentId,
           };
-
+          console.log(">", "dataBase")
           await addOrUpdatePaymentPlan({
             emailId,
             data: {
