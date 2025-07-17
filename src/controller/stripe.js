@@ -293,12 +293,14 @@ export const testStripeWebHook = async (req, res) => {
     // Handle different event types
     switch (event.type) {
       case "customer.subscription.created":
+        console.log("Customer subscription created event received");
         const subscription = event.data.object;
         const customerId = subscription.customer;
         const emailId = subscription.customer_email
         const subscriptionId = subscription.id;
         const paymentIntentId = subscription.latest_invoice.payment_intent;
         if (!subscriptionId) {
+          console.log("> ", "No subscription ID found, retrieving subscription details");
           const subscription = subscriptionId
             ? await stripe.subscriptions.retrieve(subscriptionId)
             : {};
@@ -319,7 +321,7 @@ export const testStripeWebHook = async (req, res) => {
             paymentMethod,
             paymentIntentId,
           };
-          console.log(">", "dataBase")
+          console.log("> ", "dataBase")
           await addOrUpdatePaymentPlan({
             emailId,
             data: {
@@ -333,9 +335,9 @@ export const testStripeWebHook = async (req, res) => {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object;
-        console.log(`Invoice paid for customer: ${invoice.customer}`);
+        console.log(`> Invoice paid for customer: ${invoice.customer}`);
         const customerId = invoice.customer;
-        const emailId = invoice.customer_email || invoice.customer_details.email;
+        const emailId = invoice.customer_email 
         const subscriptionId = invoice.subscription;
         const paymentIntentId = invoice.payment_intent;
         if (!subscriptionId) {
@@ -358,7 +360,7 @@ export const testStripeWebHook = async (req, res) => {
             paymentMethod,
             paymentIntentId,
           };
-          console.log(">", "dataBase")
+          console.log("> ", "dataBase")
           await addOrUpdatePaymentPlan({
             emailId,
             data: {
