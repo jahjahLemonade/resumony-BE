@@ -295,10 +295,15 @@ export const testStripeWebHook = async (req, res) => {
       case "customer.subscription.created":
         console.log("Customer subscription created event received");
         const subscription = event.data.object;
+        console.log("Subscription details:", subscription);
         const customerId = subscription.customer;
+        console.log("Customer ID:", customerId);
         const emailId = subscription.customer_email
+        console.log("Customer Email:", emailId);
         const subscriptionId = subscription.id;
+        console.log("Subscription ID:", subscriptionId);
         const paymentIntentId = subscription.latest_invoice.payment_intent;
+        console.log("Payment Intent ID:", paymentIntentId);
         if (!subscriptionId) {
           console.log("> ", "No subscription ID found, retrieving subscription details");
           const subscription = subscriptionId
